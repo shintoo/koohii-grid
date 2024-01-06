@@ -58,9 +58,18 @@
         return arr;
       }
 
+      function createBox(kanji, level) {
+          const box = document.createElement("div")
+          box.textContent = kanji
+          box.classList.add("box")
+          if (level)
+            box.style.backgroundColor = colors[level]
+
+          return box
+      }
+
       function process(csv_text) {
         const gridElement = document.getElementById("grid")
-        console.log("got: " + csv_text)
         let array = parseCSV(csv_text)
         array.shift()
         const levels = new Map()
@@ -70,16 +79,13 @@
         }
 
         for (let kanji of all_rtk_6th_ed) {
-          const box = document.createElement("div")
-          box.textContent = kanji
-          box.classList.add("box")
           const level = levels.get(kanji)
+          gridElement.appendChild(createBox(kanji, level))
+          levels.delete(kanji)
+        }
 
-          if (level !== undefined) {
-            box.style.backgroundColor = colors[level]
-          }
-
-          gridElement.appendChild(box)
+        for (let card of levels) {
+          gridElement.appendChild(createBox(card[0], card[1]))
         }
       }
 
