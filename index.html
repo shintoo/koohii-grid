@@ -15,7 +15,7 @@
         "#74C67A",
         "#99D492",
         "#BFE1B0",
-        "#DEEDCF",
+        "#DEED42",
       ].reverse()
 
       const all_rtk_6th_ed = [
@@ -24,35 +24,19 @@
 
       function parseCSV(str) {
         const arr = [];
-        let quote = false;  // 'true' means we're inside a quoted field
+        let quote = false;
 
-        // Iterate over each character, keep track of current row and column (of the returned array)
         for (let row = 0, col = 0, c = 0; c < str.length; c++) {
-            let cc = str[c], nc = str[c+1];        // Current character, next character
-            arr[row] = arr[row] || [];             // Create a new row if necessary
-            arr[row][col] = arr[row][col] || '';   // Create a new column (start with empty string) if necessary
+            let cc = str[c], nc = str[c+1];
+            arr[row] = arr[row] || [];
+            arr[row][col] = arr[row][col] || '';
 
-            // If the current character is a quotation mark, and we're inside a
-            // quoted field, and the next character is also a quotation mark,
-            // add a quotation mark to the current column and skip the next character
             if (cc == '"' && quote && nc == '"') { arr[row][col] += cc; ++c; continue; }
-
-            // If it's just one quotation mark, begin/end quoted field
             if (cc == '"') { quote = !quote; continue; }
-
-            // If it's a comma and we're not in a quoted field, move on to the next column
             if (cc == ',' && !quote) { ++col; continue; }
-
-            // If it's a newline (CRLF) and we're not in a quoted field, skip the next character
-            // and move on to the next row and move to column 0 of that new row
             if (cc == '\r' && nc == '\n' && !quote) { ++row; col = 0; ++c; continue; }
-
-            // If it's a newline (LF or CR) and we're not in a quoted field,
-            // move on to the next row and move to column 0 of that new row
             if (cc == '\n' && !quote) { ++row; col = 0; continue; }
             if (cc == '\r' && !quote) { ++row; col = 0; continue; }
-
-            // Otherwise, append the current character to the current column
             arr[row][col] += cc;
         }
         return arr;
@@ -66,6 +50,10 @@
             box.style.backgroundColor = colors[level]
 
           return box
+      }
+
+      function addHistogram(levels) {
+        boxes = []
       }
 
       function process(csv_text) {
@@ -87,6 +75,9 @@
         for (let card of levels) {
           gridElement.appendChild(createBox(card[0], card[1]))
         }
+
+        document.getElementById('instructions').remove()
+        document.getElementById('main').classList.remove('centered')
       }
 
       window.onload = () => {
@@ -107,20 +98,72 @@
       .grid {
         display: flex;
         flex-wrap: wrap;
-        width: 50%;
         margin: 1em;
       }
+
       .box {
         padding: 0.3em;
+      }
+
+      .header {
+        font-size: 2em;
+        font-family: "Helvetica Neue",Helvetica,"PingFang SC","Hiragino Sans GB","Microsoft YaHei","\5fae\8f6f\96c5\9ed1",Arial,sans-serif;
+        padding: 0.5em;
+      }
+
+      .number {
+        display: inline-block;
+        border-radius: 5px;
+        padding: 0.4em;
+        background-color: #0d3758;
+        color: white;
+        font-family: sans-serif;
+      }
+
+      .centered {
+        width: 300px;
+        height: 300px;
+
+        position: absolute;
+        top:0;
+        bottom: 0;
+        left: 0;
+        right: 0;
+
+        margin-left: auto;
+        margin-right: auto;
+      }
+
+      html, body {
+        background-color: #f2ebdf;
+      }
+
+      a {
+        text-decoration: none;
+        color: #2233ff;
+      }
+
+      @media only screen and (min-width: 480px) {
+        .grid {
+          margin: 3em;
+        }
       }
     </style>
   </head>
 
   <body>
-    <p>
-      Upload: <input type="file" id="fileInput"/>
-    </p>
+    <div id="main" class="main centered">
+      <p><span class="header">koohii grid</span></p>
+      <div id="instructions">
+        <p class="step"><div class="number">1</div> <a target="_blank" rel="noreferrer noopener" href="https://kanji.koohii.com/manage/export">export your koohii archive</a></p>
+        <p class="step"><div class="number">2</div> upload the csv file (rtk_flashcards.csv)
+        <br />
+        <br />
+        <input type="file" id="fileInput"/>
+        </p>
+      </div>
 
-    <div class="grid" id="grid" />
+      <div class="grid" id="grid" />
+    </div>
   </body>
 
