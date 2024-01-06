@@ -15,6 +15,7 @@
         "#74C67A",
         "#99D492",
         "#BFE1B0",
+        "unset",
       ].reverse()
 
       const all_rtk_6th_ed = [
@@ -43,16 +44,41 @@
         return arr;
       }
 
-      function createBox(kanji, level, ) {
+      function createBox(kanji, entry) {
           const box = document.createElement("div")
           box.textContent = kanji
           box.classList.add("box")
-          if (level) {
-            box.style.backgroundColor = colors[level]
+          if (entry) {
+            box.style.backgroundColor = colors[entry.level]
             tt = document.createElement("div")
             tt.classList.add("tooltiptext")
-            tt.textContent = `level: ${level}`
+            tt.innerHTML = `
+            <div class="level" style="color: ${colors[entry.level]}">${"★".repeat(entry.level)}${"☆".repeat(7-entry.level)}</div>
+            <div class="card">
+              <div class="keyword">${entry.keyword}</div>
+              <div class="kanji">${entry.kanji}</div>
+              <div class="index">${entry.index}</div>
+            </div>
+            <div class="answer-buttons">
+              <div class="no">${entry.fails}</div>
+              <div class="yes">${entry.passes}</div>
+            </div>
+            `
             box.appendChild(tt)
+          } else {
+            box.style.color = "#777"
+            tt = document.createElement("div")
+            tt.classList.add("tooltiptext")
+            tt.textContent = `${kanji} (not yet added)`
+            box.appendChild(tt)
+          }
+
+          if (entry) {
+            const a = document.createElement("a")
+            a.href = `https://kanji.koohii.com/study/kanji/${entry.index}`
+            a.target = "_blank"
+            a.appendChild(box)
+            return a
           }
 
           return box
@@ -60,28 +86,27 @@
 
       function addHistogram(levels) {
         const hist = new Map()
-        for (let card of levels) {
-          if (hist.get(card[1])) {
-            hist.set(card[1], hist.get(card[1])+1)
+        for (let level of levels) {
+          if (hist.get(level)) {
+            hist.set(level, hist.get(level)+1)
           } else {
-            hist.set(card[1], 1)
+            hist.set(level, 1)
           }
         }
 
         buckets = Array.from(hist)
         buckets.sort((a, b) => b[0] - a[0])
-        console.log(JSON.stringify(buckets))
         const histogram = document.getElementById("hist")
-        for (let bucket of buckets) {
-            let bucketElement = document.createElement("div")
-            bucketElement.classList.add("bucket")
-            bucketElement.textContent = bucket[1]
-            bucketElement.style.backgroundColor = colors[bucket[0]]
-            histogram.appendChild(bucketElement)
+        for (let i = 0; i < buckets.length - 1; i++) {
+          bucket = buckets[i]
+          let bucketElement = document.createElement("div")
+          bucketElement.classList.add("bucket")
+          bucketElement.textContent = bucket[1]
+          bucketElement.style.backgroundColor = colors[bucket[0]]
+          histogram.appendChild(bucketElement)
         }
 
-        const remaining = total - buckets.reduce((acc, cur) => acc + cur[1], 0)
-        console.log("remaining: ", remaining)
+        const remaining = total - buckets.reduce((acc, cur) => acc + cur[1], 0) + buckets[buckets.length - 1][1]
 
         let bucketElement = document.createElement("div")
         bucketElement.classList.add("bucket")
@@ -94,28 +119,35 @@
         const gridElement = document.getElementById("grid")
         let array = parseCSV(csv_text)
         array.shift()
-        const levels = new Map()
+        const entries = new Map()
 
         for (let card of array) {
-          levels.set(card[1], Math.max(card[5]-1, 0))
+          entries.set(card[1], {
+            "index": card[0],
+            "keyword": card[2],
+            "kanji": card[1],
+            "level": Math.max(card[5]-1, 0),
+            "passes": card[7],
+            "fails": card[6]
+          })
         }
 
-        const levels_copy = new Map(levels)
-
+        const levels = Array.from(entries).map((e) => e[1].level)
         for (let kanji of all_rtk_6th_ed) {
-          const level = levels.get(kanji)
-          gridElement.appendChild(createBox(kanji, level))
-          levels.delete(kanji)
+          const entry = entries.get(kanji)
+          gridElement.appendChild(createBox(kanji, entry))
+          entries.delete(kanji)
         }
 
-        for (let card of levels) {
-          gridElement.appendChild(createBox(card[0], card[1]))
+        for (let entry of entries) {
+          gridElement.appendChild(createBox(entry.kanji, entry))
           total++
         }
 
-        addHistogram(levels_copy)
+        addHistogram(levels)
         document.getElementById('instructions').remove()
         document.getElementById('main').classList.remove('centered')
+        document.getElementById('footer').remove()
       }
 
       window.onload = () => {
@@ -146,6 +178,13 @@
         justify-content: center;
         align-items: center;
         position: relative;
+        white-space: pre;
+        cursor: default;
+      }
+
+      #grid a {
+        all: unset;
+        cursor: pointer;
       }
 
       #hist {
@@ -158,6 +197,7 @@
       }
 
       .header {
+        margin-left: 2em;
         font-size: 2em;
         font-family: "Helvetica Neue",Helvetica,"PingFang SC","Hiragino Sans GB","Microsoft YaHei","\5fae\8f6f\96c5\9ed1",Arial,sans-serif;
         padding: 0.5em;
@@ -185,19 +225,98 @@
       }
 
       .box .tooltiptext {
+        display: flex;
+        flex-direction: column;
         visibility: hidden;
-        width: 120px;
-        background-color: black;
-        color: #fff;
-        text-align: center;
-        padding: 5px 0;
+        min-width: 100px;
+        left: 40px;
+        background-color: #b8defd;
+        padding: 5px;
         border-radius: 6px;
         position: absolute;
         z-index: 1;
+        color: #33322e !important;
+      }
+
+      .box:hover .tooltiptext {
+        visibility: visible;
+      }
+
+      .card {
+        height: 90px;
+        font-size: 2em;
+        background: white;
+        color: black;
+        font-family: Hiragino Mincho Pro, ヒラギノ明朝 Pro W3, ＭＳ 明朝, ＭＳ Ｐ明朝, Droid Sans Japanese, "Droid Serif", serif;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        position: relative;
+        margin-bottom: 0.1em;
+        box-shadow: 0 0 2px 0 rgba(0, 0, 0, 0.5);
+      }
+
+      .card .keyword {
+        font-size: 0.4em;
+        color: rgb(0, 92, 177);
+        position: absolute;
+        top: 3px;
+        left: 3px;
+      }
+
+      .card .kanji {
+        font-size: 1.5em;
+      }
+
+      .level {
+        display: flex;
+        justify-content: space-around;
+        font-size: 0.75em;
+        margin-bottom: 0.15em;
+      }
+
+      .card .index {
+        font-size: 0.3em;
+        color: rgb(160, 160, 160);
+        position: absolute;
+        bottom: 3px;
+        right: 3px;
+      }
+
+      .answer-buttons {
+        display: flex;
+        align-items: center;
+        justify-content: stretch;
+      }
+
+      .yes {
+        padding: 0.3em;
+        border-radius: 5px;
+        background-color: #588c04;
+        color: white;
+        font-weight: bold;
+        display: inline-flex;
+        justify-content: center;
+        align-items: center;
+        flex: 1;
+        margin: 0 0.1em;
+      }
+
+      .no {
+        padding: 0.3em;
+        border-radius: 5px;
+        color: white;
+        background-color: #9b2204;
+        font-weight: bold;
+        display: inline-flex;
+        justify-content: center;
+        align-items: center;
+        flex: 1;
+        margin: 0 0.1em;
       }
 
       .box:hover {
-        background-color: black;
+        background-color: black !important;
         color: white;
       }
 
@@ -205,18 +324,33 @@
         visibility: visible;
       }
 
-      html, body {
-        background-color: #f2ebdf;
+      #footer {
+        background-color: #e1dac9;
+        display: flex;
+        justify-content: space-around;
+        align-items: center;
+        height: 80px;
+        width: 100%;
+        position: absolute;
+        bottom: 0;
       }
 
       a {
-        text-decoration: none;
-        color: #2233ff;
+        text-decoration: underline;
+        color: #555;
+        margin-right: 5em;
+      }
+
+      html, body {
+        background-color: #f2ebdf;
+        color: #33322e;
+        font-family: "Helvetica Neue",Helvetica,"PingFang SC","Hiragino Sans GB","Microsoft YaHei","\5fae\8f6f\96c5\9ed1",Arial,sans-serif;
+
       }
 
       @media only screen and (min-width: 480px) {
         #grid {
-          margin: 3em;
+          margin: 5em;
           margin-top: 1em;
         }
       }
@@ -241,5 +375,7 @@
 
       <div id="grid"></div>
     </div>
+
+    <div id="footer"><span>made by <a href="https://kanji.koohii.com/profile/shintoo">shintoo</a> <a href="https://kanji.koohii.com/about/support">support kanji.koohii.com</a></div>
   </body>
 
