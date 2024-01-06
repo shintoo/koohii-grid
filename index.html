@@ -43,12 +43,17 @@
         return arr;
       }
 
-      function createBox(kanji, level) {
+      function createBox(kanji, level, ) {
           const box = document.createElement("div")
           box.textContent = kanji
           box.classList.add("box")
-          if (level)
+          if (level) {
             box.style.backgroundColor = colors[level]
+            tt = document.createElement("div")
+            tt.classList.add("tooltiptext")
+            tt.textContent = `level: ${level}`
+            box.appendChild(tt)
+          }
 
           return box
       }
@@ -140,6 +145,7 @@
         display: flex;
         justify-content: center;
         align-items: center;
+        position: relative;
       }
 
       #hist {
@@ -176,6 +182,27 @@
         right: 0;
         margin-left: auto;
         margin-right: auto;
+      }
+
+      .box .tooltiptext {
+        visibility: hidden;
+        width: 120px;
+        background-color: black;
+        color: #fff;
+        text-align: center;
+        padding: 5px 0;
+        border-radius: 6px;
+        position: absolute;
+        z-index: 1;
+      }
+
+      .box:hover {
+        background-color: black;
+        color: white;
+      }
+
+      .box:hover .tooltiptext {
+        visibility: visible;
       }
 
       html, body {
