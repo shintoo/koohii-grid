@@ -2,6 +2,7 @@
 <html>
   <head>
     <title>Koohii Grid</title>
+    <link rel="icon" type="image/x-icon" href="favicon.ico">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <script defer>
       const colors = [
@@ -335,10 +336,45 @@
         bottom: 0;
       }
 
+      .upload {
+        padding: 1em;
+        border-radius: 5px;
+        background-color: #588c04;
+        color: white;
+        font-weight: bold;
+        display: inline-flex;
+        justify-content: center;
+        align-items: center;
+      }
+
       a {
         text-decoration: underline;
         color: #555;
         margin-right: 5em;
+      }
+
+      #instructions {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+      }
+
+      #instructions > * {
+        margin-bottom: 1em;
+      }
+
+      .steps {
+        display: flex;
+        flex-direction: column;
+        align-items: flex-start;
+      }
+
+      .steps > * {
+        margin-bottom: 1em;
+      }
+
+      img {
+        width: 450px;
       }
 
       html, body {
@@ -365,17 +401,19 @@
       </div>
 
       <div id="instructions">
-        <p class="step"><div class="number">1</div> <a target="_blank" rel="noreferrer noopener" href="https://kanji.koohii.com/manage/export">export your koohii archive</a></p>
-        <p class="step"><div class="number">2</div> upload the csv file (rtk_flashcards.csv)
-          <br />
-          <br />
+        <div class="steps">
+          <div class="step"><div class="number">1</div> <a target="_blank" rel="noreferrer noopener" href="https://kanji.koohii.com/manage/export">export your koohii archive</a></div>
+          <div class="step"><div class="number">2</div> upload the csv file (rtk_flashcards.csv)</div>
+        </div>
+        <div class="upload">
           <input type="file" id="fileInput"/>
-        </p>
+        </div>
+        <img src="example.png" />
       </div>
 
       <div id="grid"></div>
     </div>
 
-    <div id="footer"><span>made by <a href="https://kanji.koohii.com/profile/shintoo">shintoo</a> <a href="https://kanji.koohii.com/about/support">support kanji.koohii.com</a></div>
+    <div id="footer"><span>made by <a href="https://kanji.koohii.com/profile/shintoo">shintoo</a></span> <a href="https://kanji.koohii.com/about/support">support kanji.koohii.com</a></div>
   </body>
 
